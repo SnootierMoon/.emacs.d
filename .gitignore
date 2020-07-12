@@ -1,3 +1,4 @@
 /etc/
 /straight/
 /var/
+!/etc/config.org
