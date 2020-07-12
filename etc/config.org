@@ -81,7 +81,7 @@
     (load bootstrap-file nil 'nomessage))
   (eval-and-compile (require 'straight))
 #+END_SRC
-*** load use-package
+*** use-package
 #+BEGIN_SRC emacs-lisp
   (customize-set-variable 'straight-use-package-by-default t)
   (customize-set-variable 'use-package-verbose t)
@@ -90,12 +90,16 @@
   (eval-and-compile (require 'use-package))
   (global-set-key (kbd "C-c 0 l") #'use-package-report)
 #+END_SRC
+#+BEGIN_SRC emacs-lisp
+  (use-package use-package-ensure-system-package)
+#+END_SRC
 ** Package List
 *** ccls
 #+BEGIN_SRC emacs-lisp
   (use-package ccls
     :after projectile
-    :custom (ccls-executable (executable-find "ccls")))
+    :custom (ccls-executable (executable-find "ccls"))
+    :ensure-system-package ccls)
     #+END_SRC
 *** comint
 #+BEGIN_SRC emacs-lisp
@@ -114,14 +118,14 @@
 #+BEGIN_SRC emacs-lisp
   (use-feature dired)
 #+END_SRC
-**** dired collapse
+**** dired x
 #+BEGIN_SRC emacs-lisp
   (use-feature dired-x
     :after dired
     :custom (dired-omit-verbose nil)
     :hook (dired-mode . dired-omit-mode))
 #+END_SRC
-**** dired x
+**** dired collapse
 #+BEGIN_SRC emacs-lisp
   (use-package dired-collapse
     :hook (dired-mode . dired-collapse-mode))
@@ -188,6 +192,7 @@
 *** lsp
 #+BEGIN_SRC emacs-lisp
   (defun lsp-compile-commands ()
+    "Run `lsp', and configure `ccls' to find compile_commands.json in the build directory if it exists."
     (when (file-exists-p (expand-file-name "build/compile_commands.json" (projectile-project-root)))
       (customize-set-variable 'ccls-initialization-options
                               '(:compilationDatabaseDirectory "build" :cache (:directory "build/.ccls-cache")))
@@ -236,7 +241,7 @@
     :hook (after-init . (lambda () (load-theme 'monokai t))))
 #+END_SRC
 *** org
-**** Org
+**** org
 #+BEGIN_SRC emacs-lisp
   (use-feature org
     :bind (("C-c a" . org-agenda)
@@ -252,7 +257,7 @@
              (org-startup-indented t)
              (org-hide-leading-stars t)))
 #+END_SRC
-**** Org Bullets
+**** org bullets
 #+BEGIN_SRC emacs-lisp
   (use-package org-bullets
     :custom (org-bullets-bullet-list '("•"))
