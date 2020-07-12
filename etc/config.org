@@ -113,6 +113,10 @@
     :custom ((company-idle-daly 0)
              (company-minimum-prefix-length 1)))
 #+END_SRC
+#+BEGIN_SRC emacs-lisp
+  (use-feature company-yasnippet
+    :config (add-to-list 'company-backends #'company-yasnippet))
+#+END_SRC
 *** dired
 **** dired
 #+BEGIN_SRC emacs-lisp
@@ -292,6 +296,15 @@
     (advice-add 'which-key--show-popup :around #'add-which-key-line)
     :custom (which-key-allow-imprecise-fit nil))
 #+END_SRC
+*** yasnippet
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet
+    :after no-littering)
+#+END_SRC
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet-snippets
+    :after no-littering yasnippet)
+#+END_SRC
 *** no littering
 #+BEGIN_SRC emacs-lisp
   (use-package no-littering)
@@ -341,6 +354,11 @@
   (customize-set-variable 'global-prettify-symbols-mode t)
   (customize-set-variable 'show-paren-mode t)
   (customize-set-variable 'truncate-lines t)
+#+END_SRC
+** Extra Keybinds
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "C-c a d") #'diff-buffer-with-file)
+  (global-set-key (kbd "C-c a r") #'recover-this-file)
 #+END_SRC
 ** Miscs
 *** yes or no prompt
