@@ -1,0 +1,331 @@
+#+TITLE: Babel Config File
+
+* Setup Environment
+** Enable Lexical Binding
+#+BEGIN_SRC emacs-lisp
+  ;; -*- lexical-binding: t; -*-
+#+END_SRC
+** Important Variables
+#+BEGIN_SRC emacs-lisp
+  (defconst my/config-file (expand-file-name (concat user-emacs-directory "etc/config.org")))
+#+END_SRC
+#+BEGIN_SRC emacs-lisp
+  (defvar my/gc-cons-threshold gc-cons-threshold)
+  (defvar my/gc-cons-percentage gc-cons-percentage)
+  (defvar my/file-name-handler-alist file-name-handler-alist)
+#+END_SRC
+** Important Functions
+*** open config file
+#+BEGIN_SRC emacs-lisp
+  (defun my/open-config-file ()
+    "Open this file."
+    (interactive)
+    (find-file my/config-file))
+  (global-set-key (kbd "C-c 0 f") #'my/open-config-file)
+#+END_SRC
+*** indent buffer
+#+BEGIN_SRC emacs-lisp
+  (defun my/indent-buffer ()
+    "Fix the indentation in the entire buffer."
+    (interactive)
+    (save-excursion
+      (indent-region (point-min) (point-max))))
+  (global-set-key (kbd "C-c i") #'my/indent-buffer)
+#+END_SRC
+*** after-init function
+#+BEGIN_SRC emacs-lisp
+  (defun my/post-init ()
+    "Do necessary after-init procedures."
+    (setq gc-cons-threshold my/gc-cons-threshold
+	  gc-cons-percentage my/gc-cons-percentage
+	  file-name-handler-alist my/file-name-handler-alist))
+  (add-hook 'after-init-hook #'my/post-init)
+#+END_SRC
+** Important Macros
+*** use-feature
+#+BEGIN_SRC emacs-lisp
+  (defmacro use-feature (name &rest args)
+    "Loads package NAME with argument ARGS.
+  Like `use-package', but with `straight-use-package-by-default' disabled."
+    (declare (indent defun))
+    `(use-package ,name
+       :straight nil
+       ,@args))
+#+END_SRC
+** Pre-Initialization
+*** small initialization optimizations
+#+BEGIN_SRC emacs-lisp
+  (setq gc-cons-threshold (* 30 1024 1024)  ; 30 MiB
+        gc-cons-percentage 0.6
+        file-name-handler-alist nil)
+#+END_SRC
+*** debug on error
+#+BEGIN_SRC emacs-lisp
+  (customize-set-variable 'debug-on-error t)
+#+END_SRC
+* Packages
+** Setup
+*** straight.el & use packages
+** Package List
+*** bootstrap straight.el
+#+BEGIN_SRC emacs-lisp
+  (defvar bootstrap-version)
+  (let ((bootstrap-file
+         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+        (bootstrap-version 5))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously
+           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+           'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
+  (eval-and-compile (require 'straight))
+#+END_SRC
+*** load use-package
+#+BEGIN_SRC emacs-lisp
+  (customize-set-variable 'straight-use-package-by-default t)
+  (customize-set-variable 'use-package-verbose t)
+  (customize-set-variable 'use-package-compute-statistics t)
+  (straight-use-package 'use-package)
+  (eval-and-compile (require 'use-package))
+  (global-set-key (kbd "C-c 0 l") #'use-package-report)
+#+END_SRC
+*** comint
+#+BEGIN_SRC emacs-lisp
+  (use-feature comint)
+    ;:hook (comint-mode . #'my/add-kill-on-exit-sentinel-timer)
+#+END_SRC
+*** company
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :config (global-company-mode t)
+    :custom ((company-idle-daly 0)
+             (company-minimum-prefix-length 1)))
+#+END_SRC
+*** dired
+**** dired
+#+BEGIN_SRC emacs-lisp
+  (use-feature dired)
+#+END_SRC
+**** dired collapse
+#+BEGIN_SRC emacs-lisp
+  (use-feature dired-x
+    :after dired
+    :custom (dired-omit-verbose nil)
+    :hook (dired-mode . dired-omit-mode))
+#+END_SRC
+**** dired x
+#+BEGIN_SRC emacs-lisp
+  (use-package dired-collapse
+    :hook (dired-mode . dired-collapse-mode))
+#+END_SRC
+*** disable mouse
+#+BEGIN_SRC emacs-lisp
+  (use-package disable-mouse
+    :config (global-disable-mouse-mode t))
+#+END_SRC
+*** files
+#+BEGIN_SRC emacs-lisp
+  (use-feature files
+    :custom ((backup-by-copying t)
+             (delete-old-versions t)
+             (kept-new-versions 6)
+             (kept-old-versions 2)
+             (require-final-newline t)
+             (version-control t)
+             (view-read-only t)))
+#+END_SRC
+*** flycheck
+#+BEGIN_SRC emacs-lisp
+  (use-package flycheck
+    :config (global-flycheck-mode t)
+    :hook (after-init . (lambda ()
+                          (setq flycheck-emacs-lisp-load-path load-path))))
+#+END_SRC
+*** ibuffer
+**** ibuffer
+#+BEGIN_SRC emacs-lisp
+  (use-package ibuffer
+    :bind ("C-x C-b" . ibuffer-other-window))
+#+END_SRC
+**** projectile
+#+BEGIN_SRC emacs-lisp
+  (use-package ibuffer-projectile
+    :after (ibuffer projectile)
+    :commands (ibuffer-projectile-set-filter-groups)
+    :hook (ibuffer . ibuffer-projectile-set-filter-groups))
+
+#+END_SRC
+*** ivy
+**** counsel
+#+BEGIN_SRC emacs-lisp
+  (use-package counsel
+    :after ivy
+    :config (counsel-mode t))
+#+END_SRC
+**** ivy
+#+BEGIN_SRC emacs-lisp
+  (use-package ivy
+    :custom ((ivy-count-format "%d/%d ")
+             (ivy-mode t)
+             (ivy-use-virtual-buffers t)))
+	   
+#+END_SRC
+**** swiper
+#+BEGIN_SRC emacs-lisp
+  (use-package swiper
+    :after ivy
+    :bind (("C-s" . swiper)
+           ("C-r" . swiper)))
+#+END_SRC
+*** lsp
+#+BEGIN_SRC emacs-lisp
+  (use-package lsp-mode
+    :hook ((c-mode-common . lsp)
+           (lsp-mode . lsp-enable-which-key-integration)))
+#+END_SRC
+#+BEGIN_SRC emacs-lisp
+    (use-package lsp-ui
+      :after lsp
+      :config (lsp-ui-doc-enable nil))
+#+END_SRC
+#+BEGIN_SRC emacs-lisp
+  (use-package lsp-ivy
+    :after lsp ivy
+    :commands lsp-ivy-workspace-symbol)
+
+#+END_SRC
+*** magit
+**** forge
+#+BEGIN_SRC emacs-lisp
+  (use-package forge
+    :after magit)
+#+END_SRC
+**** magit
+#+BEGIN_SRC emacs-lisp
+  (use-package magit
+    :bind ("C-c g" . magit-status))
+#+END_SRC
+*** misc cmds
+#+BEGIN_SRC emacs-lisp
+  (use-package misc-cmds)
+#+END_SRC
+*** monokai theme
+#+BEGIN_SRC emacs-lisp
+  (use-package monokai-theme
+    :custom ((monokai-height-minus-1 0.8)
+             (monokai-height-plus-1 1.1)
+             (monokai-height-plus-2 1.15)
+             (monokai-height-plus-3 1.2)
+             (monokai-height-plus-4 1.3))
+    :hook (after-init . (lambda () (load-theme 'monokai t))))
+#+END_SRC
+*** org
+**** Org
+#+BEGIN_SRC emacs-lisp
+  (use-feature org
+    :bind (("C-c a" . org-agenda)
+           ("C-c c" . org-capture)
+           ("C-c l" . org-store-link))
+    :custom ((org-ellipsis "…")
+             (org-return-follows-link t)
+             (org-src-fontify-natively t)
+             (org-src-tab-acts-natively t)
+             (org-src-perserve-indentation t)
+             (org-src-strip-leading-and-trailing-blank-lines t)
+             (org-src-window-setup 'current-window)
+             (org-startup-indented t)
+             (org-hide-leading-stars t)))
+#+END_SRC
+**** Org Bullets
+#+BEGIN_SRC emacs-lisp
+  (use-package org-bullets
+    :custom (org-bullets-bullet-list '("•"))
+    :hook (org-mode . org-bullets-mode))
+#+END_SRC
+*** projectile
+#+BEGIN_SRC emacs-lisp
+  (use-package projectile
+    :after no-littering
+    :bind-keymap ("C-c p" . projectile-command-map)
+    :config (projectile-mode t))
+#+END_SRC
+*** server
+#+BEGIN_SRC emacs-lisp
+  (use-feature server
+    :defer 0.4
+    :config (or (server-running-p) (server-mode)))
+#+END_SRC
+*** wgrep
+#+BEGIN_SRC emacs-lisp
+  (use-package wgrep)
+#+END_SRC
+*** which key
+#+BEGIN_SRC emacs-lisp
+  (defun add-which-key-line (f &rest r)
+    "Add an extra line to the which-key buffer."
+    (progn
+      (apply f (list (cons (+ 1 (car (car r))) (cdr (car r)))))))
+  (use-package which-key
+    :config (which-key-mode t)
+    (advice-add 'which-key--show-popup :around #'add-which-key-line)
+    :custom (which-key-allow-imprecise-fit nil))
+#+END_SRC
+*** no littering
+#+BEGIN_SRC emacs-lisp
+  (use-package no-littering)
+#+END_SRC
+* Customs
+** Customize Defaults 
+*** auto revert
+#+BEGIN_SRC emacs-lisp
+  (customize-set-variable 'auto-revert-verbose nil)
+  (customize-set-variable 'global-auto-revert-mode t)
+  (customize-set-variable 'global-auto-revert-non-file-buffers t)
+#+END_SRC
+*** electric modes
+#+BEGIN_SRC emacs-lisp
+  (customize-set-variable 'electric-indent-mode t)
+  (customize-set-variable 'electric-layout-mode t)
+  (customize-set-variable 'electric-pair-mode t)
+#+END_SRC
+*** bad gui things
+#+BEGIN_SRC emacs-lisp
+  (customize-set-variable 'menu-bar-mode nil)
+  (customize-set-variable 'ring-bell-function #'ignore)
+  (customize-set-variable 'scroll-bar-mode nil)
+  (customize-set-variable 'tool-bar-mode nil)
+#+END_SRC
+*** personal info
+#+BEGIN_SRC emacs-lisp
+  (customize-set-variable 'user-mail-address "aku24.7x3@gmail.com")
+  (customize-set-variable 'user-full-name "Akshay Trivedi")
+#+END_SRC
+*** minibuffer
+#+BEGIN_SRC emacs-lisp
+  (customize-set-variable 'enable-recursive-minibuffers t)
+  (customize-set-variable 'resize-mini-windows t)
+#+END_SRC
+*** extra functional customizations
+#+BEGIN_SRC emacs-lisp
+  (customize-set-variable 'auto-compression-mode t)
+  (customize-set-variable 'confirm-nonexistent-file-or-buffer nil)
+  (customize-set-variable 'shift-select-mode nil)
+#+END_SRC
+*** extra visual customizations
+#+BEGIN_SRC emacs-lisp
+  (customize-set-variable 'cursor-type 'bar)
+  (customize-set-variable 'global-display-line-numbers-mode t)
+  (customize-set-variable 'global-hl-line-mode t)
+  (customize-set-variable 'global-prettify-symbols-mode t)
+  (customize-set-variable 'show-paren-mode t)
+  (customize-set-variable 'truncate-lines t)
+#+END_SRC
+** Miscs
+*** yes or no prompt
+#+BEGIN_SRC emacs-lisp
+  (defalias 'yes-or-no-p #'y-or-n-p)
+#+END_SRC
+
