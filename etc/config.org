@@ -64,9 +64,7 @@
   (customize-set-variable 'debug-on-error t)
 #+END_SRC
 * Packages
-** Setup
-*** straight.el & use packages
-** Package List
+** straight.el & use package
 *** bootstrap straight.el
 #+BEGIN_SRC emacs-lisp
   (defvar bootstrap-version)
@@ -92,6 +90,13 @@
   (eval-and-compile (require 'use-package))
   (global-set-key (kbd "C-c 0 l") #'use-package-report)
 #+END_SRC
+** Package List
+*** ccls
+#+BEGIN_SRC emacs-lisp
+  (use-package ccls
+    :after projectile
+    :custom (ccls-executable (executable-find "ccls")))
+    #+END_SRC
 *** comint
 #+BEGIN_SRC emacs-lisp
   (use-feature comint)
@@ -182,8 +187,17 @@
 #+END_SRC
 *** lsp
 #+BEGIN_SRC emacs-lisp
+  (defun lsp-compile-commands ()
+    (when (file-exists-p (expand-file-name "build/compile_commands.json" (projectile-project-root)))
+      (customize-set-variable 'ccls-initialization-options
+                              '(:compilationDatabaseDirectory "build" :cache (:directory "build/.ccls-cache")))
+      (lsp)))
+
+#+END_SRC
+#+BEGIN_SRC emacs-lisp
   (use-package lsp-mode
-    :hook ((c-mode-common . lsp)
+    :after ccls
+    :hook ((prog-mode . lsp-compile-commands)
            (lsp-mode . lsp-enable-which-key-integration)))
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
@@ -195,7 +209,6 @@
   (use-package lsp-ivy
     :after lsp ivy
     :commands lsp-ivy-workspace-symbol)
-
 #+END_SRC
 *** magit
 **** forge
@@ -250,7 +263,8 @@
   (use-package projectile
     :after no-littering
     :bind-keymap ("C-c p" . projectile-command-map)
-    :config (projectile-mode t))
+    :config (projectile-mode t)
+    :defer nil)
 #+END_SRC
 *** server
 #+BEGIN_SRC emacs-lisp
