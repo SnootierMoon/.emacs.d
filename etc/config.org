@@ -189,7 +189,7 @@
 #+BEGIN_SRC emacs-lisp
     (use-package lsp-ui
       :after lsp
-      :config (lsp-ui-doc-enable nil))
+      :custom (lsp-ui-doc-enable nil))
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
   (use-package lsp-ivy
