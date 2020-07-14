@@ -11,5 +11,4 @@
 (org-babel-load-file (expand-file-name (concat user-emacs-directory "etc/config.org")))
 
 (provide 'init)
-
 ;;; init.el ends here
