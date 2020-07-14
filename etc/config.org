@@ -1,10 +1,15 @@
 #+TITLE: Babel Config File
 
-* Setup Environment
-** Enable Lexical Binding
+* Elisp header comment
 #+BEGIN_SRC emacs-lisp
-  ;; -*- lexical-binding: t; -*-
+  ;;; config.el --- Initialize config -*- lexical-binding: t; -*-
+  ;;; Commentary:
+
+  ;; See .emacs.d/etc/config.org
+
+  ;;; Code:
 #+END_SRC
+* Setup Environment
 ** Important Variables
 #+BEGIN_SRC emacs-lisp
   (defconst my/config-file (expand-file-name (concat user-emacs-directory "etc/config.org")))
@@ -45,7 +50,7 @@
 *** use-feature
 #+BEGIN_SRC emacs-lisp
   (defmacro use-feature (name &rest args)
-    "Loads package NAME with argument ARGS.
+    "Load package NAME with argument ARGS.
   Like `use-package', but with `straight-use-package-by-default' disabled."
     (declare (indent defun))
     `(use-package ,name
@@ -315,10 +320,9 @@
 #+END_SRC
 *** which key
 #+BEGIN_SRC emacs-lisp
-  (defun add-which-key-line (f &rest r)
-    "Add an extra line to the which-key buffer."
-    (progn
-      (apply f (list (cons (+ 1 (car (car r))) (cdr (car r)))))))
+  (defun add-which-key-line (func dimensions)
+    "Increase the height of DIMENSIONS by 1, and forward to FUNC."
+    (apply func (list (cons (+ 1 (car dimensions)) (cdr dimensions)))))
   (use-package which-key
     :config (which-key-mode t)
     (advice-add 'which-key--show-popup :around #'add-which-key-line)
@@ -380,11 +384,16 @@
 #+END_SRC
 ** Extra Keybinds
 #+BEGIN_SRC emacs-lisp
-  (global-set-key (kbd "C-c 9 d") #'diff-buffer-with-file)
-  (global-set-key (kbd "C-c 9 r") #'recover-this-file)
+  (global-set-key (kbd "C-c r d") #'diff-buffer-with-file)
+  (global-set-key (kbd "C-c r r") #'recover-this-file)
 #+END_SRC
 ** Miscs
 *** yes or no prompt
 #+BEGIN_SRC emacs-lisp
   (defalias 'yes-or-no-p #'y-or-n-p)
+#+END_SRC
+* Elisp footer comment
+#+BEGIN_SRC emacs-lisp
+  (provide 'config)
+  ;;; config.el ends here
 #+END_SRC
