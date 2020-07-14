@@ -185,7 +185,7 @@
   (use-package counsel
     :after ivy
     :config (counsel-mode t)
-    :custom (counsel-find-file-ignore-regexp "^\\(.#.+\\|#.+#\\)$"))
+    :custom (counsel-find-file-ignore-regexp "^\\(.+\\/\\)*\\(.#.+\\|#.+#\\)$"))
 #+END_SRC
 **** ivy
 #+BEGIN_SRC emacs-lisp
