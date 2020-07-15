@@ -210,7 +210,7 @@
 #+END_SRC
 *** lsp
 #+BEGIN_SRC emacs-lisp
-  (defun lsp-with-compile-commands ()
+  (defun lsp-maybe-with-compile-commands ()
     "Run `lsp', and configure `ccls' to find compile_commands.json in the build directory if it exists."
     (when (file-exists-p (expand-file-name "build/compile_commands.json" (projectile-project-root)))
       (customize-set-variable 'ccls-initialization-options
@@ -221,7 +221,7 @@
 #+BEGIN_SRC emacs-lisp
   (use-package lsp-mode
     :after ccls
-    :hook ((prog-mode . lsp-with-compile-commands)
+    :hook ((prog-mode . lsp-maybe-with-compile-commands)
            (lsp-mode . lsp-enable-which-key-integration)))
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
@@ -271,14 +271,17 @@
            ("C-c c" . org-capture)
            ("C-c l" . org-store-link))
     :custom ((org-ellipsis "…")
-             (org-return-follows-link t)
+             (org-hide-leading-stars t)
+             (org-special-ctrl-a/e t)
+             (org-special-ctrl-k t)
+             (org-special-ctrl-o t)
              (org-src-fontify-natively t)
              (org-src-tab-acts-natively t)
-             (org-src-perserve-indentation t)
+             (org-src-preserve-indentation t)
              (org-src-strip-leading-and-trailing-blank-lines t)
              (org-src-window-setup 'current-window)
-             (org-startup-indented t)
-             (org-hide-leading-stars t)))
+             (org-startup-indented t)))
+
 #+END_SRC
 **** org bullets
 #+BEGIN_SRC emacs-lisp
@@ -303,8 +306,9 @@
 *** server
 #+BEGIN_SRC emacs-lisp
   (use-feature server
-    :defer 0.4
-    :config (or (server-running-p) (server-mode)))
+    :config (or (server-running-p) (server-mode))
+    :hook (server-switch . raise-frame)
+    :defer 0.4)
 #+END_SRC
 *** xkcd
 #+BEGIN_SRC emacs-lisp
