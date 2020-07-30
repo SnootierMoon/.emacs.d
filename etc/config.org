@@ -188,7 +188,7 @@
     :bind (("<f1>" . #'help-command)
 	   :map key-translation-map
 	   ("C-h" . [?\C-?]))
-    :config (hardcore-mode t))
+    :config (global-hardcore-mode t))
 #+END_SRC
 *** ibuffer
 **** ibuffer
@@ -310,7 +310,7 @@
   :custom (org-bullets-bullet-list '("•"))
   :hook (org-mode . org-bullets-mode))
 #+END_SRC
-*** projectile
+*** COMMENT projectile
 #+BEGIN_SRC emacs-lisp
 (use-package projectile
   :after no-littering
@@ -318,7 +318,7 @@
   :config (projectile-mode t)
   :defer nil)
 #+END_SRC
-#+BEGIN_SRC emacs-lispp
+#+BEGIN_SRC emacs-lisp
 (use-package counsel-projectile
   :after counsel projectile
   :config (counsel-projectile-mode t))
