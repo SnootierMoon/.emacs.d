@@ -121,14 +121,26 @@
 #+END_SRC
 *** company
 #+BEGIN_SRC emacs-lisp
+(defvar company-mode/enable-yas t
+  "Enable yasnippet for all backends.")
+
+(defun company-mode/backend-with-yas (backend)
+  (if (or (not company-mode/enable-yas) (and (listp backend) (member 'company-yasnippet backend)))
+      backend
+    (append (if (consp backend) backend (list backend))
+            '(:with company-yasnippet))))
+
 (use-package company
-  :config (global-company-mode t)
+  :config
+  (global-company-mode t)
+  (setq company-backends (mapcar #'company-mode/backend-with-yas company-backends))
   :custom ((company-idle-daly 0)
 	   (company-minimum-prefix-length 1)))
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
-(use-feature company-yasnippet
-  :config (add-to-list 'company-backends #'company-yasnippet))
+					;(use-feature company-yasnippet
+					;  :after company yasnippet
+					;  :config (add-to-list 'company-backends #'company-yasnippet))
 #+END_SRC
 *** dired
 **** dired
@@ -170,6 +182,14 @@
   :hook (after-init . (lambda ()
 			(setq flycheck-emacs-lisp-load-path load-path))))
 #+END_SRC
+*** hardcore
+#+BEGIN_SRC emacs-lisp
+  (use-package hardcore-mode
+    :bind (("<f1>" . #'help-command)
+	   :map key-translation-map
+	   ("C-h" . [?\C-?]))
+    :config (hardcore-mode t))
+#+END_SRC
 *** ibuffer
 **** ibuffer
 #+BEGIN_SRC emacs-lisp
@@ -190,7 +210,7 @@
 (use-package counsel
   :after ivy
   :config (counsel-mode t)
-  :custom (counsel-find-file-ignore-regexp "^\\(.+\\/\\)*\\(.#.+\\|#.+#\\)$"))
+  :custom (counsel-find-file-ignore-regexp "^\\(\\(.+\\/\\)*\\(.#.+\\|#.+#\\)\\|build\\/.+\\)$"))
 #+END_SRC
 **** ivy
 #+BEGIN_SRC emacs-lisp
@@ -213,25 +233,25 @@
 (defun lsp-maybe-with-compile-commands ()
   "Run `lsp', and configure `ccls' to find compile_commands.json in the build directory if it exists."
   (when (file-exists-p (expand-file-name "build/compile_commands.json" (projectile-project-root)))
-    (customize-set-variable 'ccls-initialization-options
-			    '(:compilationDatabaseDirectory "build" :cache (:directory "build/.ccls-cache")))
-    (lsp)))
+    (setq-local ccls-initialization-options
+		'(:compilationDatabaseDirectory "build" :cache (:directory "build/.ccls-cache"))))
+  (lsp))
 
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
   :after ccls
-  :hook ((prog-mode . lsp-maybe-with-compile-commands)
+  :hook ((c-mode . lsp-maybe-with-compile-commands)
 	 (lsp-mode . lsp-enable-which-key-integration)))
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-ui
-  :after lsp
+  :after lsp-mode
   :custom (lsp-ui-doc-enable nil))
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-ivy
-  :after lsp ivy
+  :after lsp-mode ivy
   :commands lsp-ivy-workspace-symbol)
 #+END_SRC
 *** magit
@@ -261,7 +281,8 @@
 #+END_SRC
 *** notmuch
 #+BEGIN_SRC emacs-lisp
-(use-package notmuch)
+(use-package notmuch
+  :after no-littering)
 #+END_SRC
 *** org
 **** org
@@ -294,11 +315,10 @@
 (use-package projectile
   :after no-littering
   :bind-keymap ("C-c p" . projectile-command-map)
-  :config
-  (projectile-mode t)
+  :config (projectile-mode t)
   :defer nil)
 #+END_SRC
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lispp
 (use-package counsel-projectile
   :after counsel projectile
   :config (counsel-projectile-mode t))
@@ -336,7 +356,8 @@
 *** yasnippet
 #+BEGIN_SRC emacs-lisp
 (use-package yasnippet
-  :after no-littering)
+  :after no-littering
+  :hook (prog-mode . yas-minor-mode-on))
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
 (use-package yasnippet-snippets
