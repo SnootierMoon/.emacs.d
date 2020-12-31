@@ -30,6 +30,11 @@
   (save-excursion
     (indent-region (point-min) (point-max))))
 #+END_SRC
+*** kill this buffer
+#+BEGIN_SRC emacs-lisp
+;; REMINDER: kill-this-buffer is bronked: https://www.reddit.com/r/emacs/comments/64xb3q/killthisbuffer_sometimes_just_stops_working/
+(defun my/kill-this-buffer () (interactive) (kill-buffer (current-buffer)))
+#+END_SRC
 ** Important Macros
 *** use-feature
 #+BEGIN_SRC emacs-lisp
@@ -42,7 +47,7 @@ Like `use-package', but with `straight-use-package-by-default' disabled."
      ,@args))
 #+END_SRC
 * Packages
-** Straight.el & Use-package
+** straight.el & use-package
 *** bootstrap straight.el
 #+BEGIN_SRC emacs-lisp
 (defvar bootstrap-version)
@@ -80,11 +85,15 @@ Like `use-package', but with `straight-use-package-by-default' disabled."
 (use-package monokai-theme
   :hook (after-init . (lambda () (load-theme 'monokai t))))
 #+END_SRC
+*** simple-httpd
+#+BEGIN_SRC emacs-lisp
+(use-package simple-httpd)
+#+END_SRC
 *** autorevert
 #+BEGIN_SRC emacs-lisp
 (use-feature autorevert
+  :config (global-auto-revert-mode t)
   :custom ((auto-revert-verbose nil)
-	   (global-auto-revert-mode t)
 	   (global-auto-revert-non-file-buffers t)))
 #+END_SRC
 *** dired
@@ -121,18 +130,6 @@ Like `use-package', but with `straight-use-package-by-default' disabled."
   :hook (server-switch . raise-frame)
   :defer 0.4)
 #+END_SRC
-*** xkcd
-#+BEGIN_SRC emacs-lisp
-(use-package xkcd
-  :bind (:map xkcd-mode-map
-	      ("n" . xkcd-next)
-	      ("p" . xkcd-prev)
-	      ("r" . xkcd-rand)))
-#+END_SRC
-*** wgrep
-#+BEGIN_SRC emacs-lisp
-(use-package wgrep)
-#+END_SRC
 *** which key
 #+BEGIN_SRC emacs-lisp
 (defun add-which-key-line (func dimensions)
@@ -143,12 +140,13 @@ Like `use-package', but with `straight-use-package-by-default' disabled."
   (advice-add 'which-key--show-popup :around #'add-which-key-line)
   :custom (which-key-allow-imprecise-fit nil))
 #+END_SRC
-*** disable mouse
+*** dum shit
+**** disable mouse
 #+BEGIN_SRC emacs-lisp
 (use-package disable-mouse
   :config (global-disable-mouse-mode t))
 #+END_SRC
-*** hardcore
+**** hardcore
 #+BEGIN_SRC emacs-lisp
 (use-package hardcore-mode
   :bind (("C-c h" . #'help-command)
@@ -167,7 +165,6 @@ Like `use-package', but with `straight-use-package-by-default' disabled."
 (use-package ibuffer-projectile
   :commands (ibuffer-projectile-set-filter-groups)
   :hook (ibuffer . ibuffer-projectile-set-filter-groups))
-
 #+END_SRC
 *** yasnippet
 #+BEGIN_SRC emacs-lisp
@@ -179,11 +176,8 @@ Like `use-package', but with `straight-use-package-by-default' disabled."
 #+END_SRC
 *** company
 #+BEGIN_SRC emacs-lisp
-(defvar company-mode/enable-yas t
-  "Enable yasnippet for all backends.")
-
 (defun company-mode/backend-with-yas (backend)
-  (if (or (not company-mode/enable-yas) (and (listp backend) (member 'company-yasnippet backend)))
+  (if (and (listp backend) (member 'company-yasnippet backend))
       backend
     (append (if (consp backend) backend (list backend))
             '(:with company-yasnippet))))
@@ -206,11 +200,10 @@ Like `use-package', but with `straight-use-package-by-default' disabled."
 #+BEGIN_SRC emacs-lisp
 (defun lsp-maybe-with-compile-commands ()
   "Run `lsp', and configure `ccls' to find compile_commands.json in the build directory if it exists."
-  (when (file-exists-p (expand-file-name "build/compile_commands.json" (projectile-project-root)))
-    (setq-local ccls-initialization-options
-		'(:compilationDatabaseDirectory "build" :cache (:directory "build/.ccls-cache"))))
-  (lsp))
-
+  (let ((compile-commands-file (expand-file-name "build/compile_commands.json" (projectile-project-root))))
+    (when (file-exists-p compile-commands-file)
+      (setq-local lsp-clients-clangd-args `(,(concat "--compile-commands-dir=" (file-name-directory compile-commands-file))))
+      (lsp))))
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
@@ -228,32 +221,6 @@ Like `use-package', but with `straight-use-package-by-default' disabled."
   :config (projectile-mode t)
   :defer nil)
 #+END_SRC
-#+BEGIN_SRC emacs-lisp
-(use-package counsel-projectile
-  :config (counsel-projectile-mode t))
-#+END_SRC
-*** ivy
-**** ivy
-#+BEGIN_SRC emacs-lisp
-(use-package ivy
-  :custom ((ivy-count-format "%d/%d ")
-	   (ivy-extra-directories nil)
-	   (ivy-mode t)
-	   (ivy-use-virtual-buffers t)))
-
-#+END_SRC
-**** counsel
-#+BEGIN_SRC emacs-lisp
-(use-package counsel
-  :config (counsel-mode t)
-  :custom (counsel-find-file-ignore-regexp "^\\(\\(.+\\/\\)*\\(\\.#.+\\|#.+#\\)\\|.+\\/build\\/.+\\)$"))
-#+END_SRC
-**** swiper
-#+BEGIN_SRC emacs-lisp
-(use-package swiper
-  :bind (("C-s" . swiper)
-	 ("C-r" . swiper)))
-#+END_SRC
 *** magit
 **** magit
 #+BEGIN_SRC emacs-lisp
@@ -270,17 +237,17 @@ Like `use-package', but with `straight-use-package-by-default' disabled."
   :bind (("C-c a" . org-agenda)
 	 ("C-c c" . org-capture)
 	 ("C-c l" . org-store-link))
-  :custom ((org-ellipsis "…")
-	   (org-hide-leading-stars t)
+  :custom ((org-hide-leading-stars t)
 	   (org-special-ctrl-a/e t)
 	   (org-special-ctrl-k t)
 	   (org-special-ctrl-o t)
 	   (org-src-fontify-natively t)
-	   (org-src-tab-acts-natively t)
 	   (org-src-preserve-indentation t)
 	   (org-src-strip-leading-and-trailing-blank-lines t)
+	   (org-src-tab-acts-natively t)
 	   (org-src-window-setup 'current-window)
-	   (org-startup-indented t)))
+	   (org-startup-indented t)
+	   (org-ellipsis "…")))
 #+END_SRC
 **** bullets
 #+BEGIN_SRC emacs-lisp
@@ -289,13 +256,6 @@ Like `use-package', but with `straight-use-package-by-default' disabled."
   :hook (org-mode . org-bullets-mode))
 #+END_SRC
 ** Language Servers
-*** ccls
-#+BEGIN_SRC emacs-lisp
-(use-package ccls
-  ;;  :config (add-to-list 'projectile-globally-ignored-directories ".ccls-cache")
-  :custom (ccls-executable (executable-find "/usr/bin/ccls"))
-  :ensure-system-package ccls)
-#+END_SRC
 *** lsp-python-ms
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-python-ms
@@ -352,9 +312,12 @@ Like `use-package', but with `straight-use-package-by-default' disabled."
 (global-set-key (kbd "C-c i f") #'my/open-config-file)
 (global-set-key (kbd "C-c i l") #'use-package-report)
 (global-set-key (kbd "C-c e i") #'my/indent-buffer)
+(global-set-key (kbd "C-c e s") #'sort-lines)
 (global-set-key (kbd "C-c r d") #'diff-buffer-with-file)
 (global-set-key (kbd "C-c r r") #'recover-this-file)
-(global-set-key (kbd "C-x K") #'kill-this-buffer)
+(global-set-key (kbd "C-x k") #'my/kill-this-buffer)
+(global-set-key (kbd "C-x K") #'kill-buffer)
+(global-set-key (kbd "C-x M-k") #'kill-buffer-and-window)
 
 (global-set-key (kbd "C-z") #'undo)
 (global-set-key (kbd "C-/") #'mark-whole-buffer)
@@ -363,6 +326,10 @@ Like `use-package', but with `straight-use-package-by-default' disabled."
 *** yes or no prompt
 #+BEGIN_SRC emacs-lisp
 (defalias 'yes-or-no-p #'y-or-n-p)
+#+END_SRC
+*** exec path
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'exec-path (expand-file-name "~/.local/bin") t)
 #+END_SRC
 * Elisp Footer Comment
 #+BEGIN_SRC emacs-lisp
