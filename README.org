@@ -1,0 +1,286 @@
+#+title: My .emacs.d config
+#+author: SnootierMoon
+#+description: Pog
+
+* Project Summary
+This is my =.emacs.d= configuration file. It's an =org-mode= file that has all of my configuration files in several =org-src= blocks along with some notes. I chose this design to have the benifits of organization while keeping all of the code in one file for ease of access.
+I wrote the notes so that I don't have to research everything every time I update this file. However, they will probably be useful for others who want to read my config.
+*This config only works with Emacs version >27* because it relies Emacs 27 features such as =early-init.el=.
+* Getting Started
+** Prerequisites
+ - Emacs version >27 :: If you have Emacs installed, verify that the version is >27 with =emacs --version=, because there's a decent chance that it's not (26 was default for me). [[https://ubuntuhandbook.org/index.php/2020/09/install-emacs-27-1-ppa-ubuntu-20-04/][Instructions for Ubuntu]].
+ - [[https://github.com/rust-analyzer/rust-analyzer][Rust-Analyzer]] :: I mainly use Emacs for Rust development these days, and the [[https://github.com/brotzeit/rustic][rust package]] I use depends requires rust-analyzer to work properly. I *think* it works without rust-analyzer but IIRC it has some annoying bugs for editing Rust files.
+ - Several Emacs packages :: They'll be installed automatically with [[https://github.com/raxod502/straight.el][=straight.el=]], so nothing has to be done for these.
+** Installation
+*** Cloning
+Since you should be using Emacs version >27, you should be able to clone this repository into your =~/.config/emacs= directory (which I use):
+#+begin_src bash
+git clone "https://github.com/SnootierMoon/.emacs.d" "~/.config/emacs"
+#+end_src
+If you're weird, you can use =~/.emacs.d=:
+#+begin_src bash
+cd ~ && git clone "https://github.com/SnootierMoon/.emacs.d"
+#+end_src
+*** Building elisp files
+This config doesn't come with =init.el= or =early-init.el=. Instead, they are generated from =README.org= using the =lisp/snoot.el= file. In order to generate them, do:
+#+begin_src bash
+emacs --script "~/.config/emacs/lisp/snoot.el" -f "snoot/tangle-readme"
+#+end_src
+*** Systemd (optional)
+At this point, Emacs is ready. Howver, ou can also use =systemd= to have Emacs run constantly in the background ([[https://emacsredux.com/blog/2020/07/16/running-emacs-with-systemd/][instructions]]).
+* Features/Style Summary
+- I tried to make the elisp as compliant with =flycheck= and =checkdock= as possible.
+* Code
+This section contains the fun stuff.
+** early-init.el
+This runs before the GUI is initialized. Because I can disable ugly GUI features here, they won't popup for a few seconds at startup and contaminate my eyes.
+#+begin_src emacs-lisp :tangle early-init.el
+;;; early-init.el --- My Early-Init File
+;;; Commentary:
+;;; Code:
+
+(add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
+
+(customize-set-variable 'package-enable-at-startup nil)
+(fringe-mode 5)
+(menu-bar-mode 0)
+(scroll-bar-mode 0)
+(tool-bar-mode 0)
+
+(provide 'early-init)
+;;; early-init.el ends here
+#+end_src
+** init.el
+#+begin_src emacs-lisp :tangle init.el
+;;; init.el --- My Emacs Startup File
+;;; Commentary:
+;;; Code:
+
+(require 'snoot)
+
+(require 'init-packages)
+(require 'init-keybinds)
+(require 'init-custom)
+
+(provide 'init)
+;;; init.el ends here
+#+end_src
+** My Variables/Functions (snoot.el)
+This file contains variables and functions that I wrote myself.
+Most notably, it contains =snoot/tangle-readme=, which is used to generate the elisp files.
+#+begin_src emacs-lisp :tangle lisp/snoot.el
+;;; snoot.el --- Init code written by me
+;;; Commentary:
+;;; Code:
+
+(require 'org)
+
+(defconst snoot/init-org-file (expand-file-name "README.org" user-emacs-directory))
+(defconst snoot/init-lisp-dir (expand-file-name "lisp" user-emacs-directory))
+(defconst snoot/easy-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l ?e ?r ?u ?i))
+
+(defun snoot/tangle-readme ()
+  "Tangle README.org and generate elisp files."
+  (require 'org)
+  (make-directory snoot/init-lisp-dir :parents)
+  (org-babel-tangle-file snoot/init-org-file))
+
+(defun snoot/indent-buffer ()
+  "Indent the current buffer with `indent-region'."
+  (interactive)
+  (indent-region (point-min) (point-max))
+  (delete-trailing-whitespace))
+
+(provide 'snoot)
+;;; snoot.el ends here
+#+end_src 
+** Packages (init-packages.el)
+:PROPERTIES:
+:header-args: :tangle lisp/init-packages.el
+:END:
+*** initialize
+File header & bootstrap =straight.el=
+#+begin_src emacs-lisp
+;;; init-packages.el --- Intialize packages with straight
+;;; Commentary:
+;;; Code:
+
+;; https://github.com/raxod502/straight.el#bootstrapping-straightel
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+(eval-and-compile (require 'straight))
+
+(customize-set-variable 'straight-use-package-by-default t)
+(customize-set-variable 'use-package-verbose t)
+(customize-set-variable 'use-package-compute-statistics t)
+(straight-use-package 'use-package)
+(eval-and-compile (require 'use-package))
+(use-package use-package-ensure-system-package)
+#+end_src
+*** package list
+**** async
+#+begin_src emacs-lisp
+(use-package async)
+#+end_src
+**** company
+#+begin_src emacs-lisp
+(use-package company
+  :custom
+  (company-dabbrev-dowcase 0)
+  :hook
+  (prog-mode . company-mode)
+  (text-mode . company-mode))
+#+end_src
+**** counsel
+#+begin_src emacs-lisp
+(use-package counsel
+  :commands counsel-mode
+  :custom
+  (counsel-find-file-ignore-regexp "^\\(\\(.+\\/\\)*\\(\\.#.+\\|#.+#\\)\\|.+\\/build\\/.+\\)$")
+  :init
+  (counsel-mode 1))
+#+end_src
+**** dracula
+#+begin_src emacs-lisp
+(use-package dracula-theme
+  :init
+  (load-theme 'dracula t))
+#+end_src
+**** flycheck
+#+begin_src emacs-lisp
+(use-package flycheck
+  :custom
+  (flycheck-emacs-lisp-load-path 'inherit)
+  :hook
+  (prog-mode . flycheck-mode))
+#+end_src
+**** ivy
+#+begin_src emacs-lisp
+(use-package ivy
+  :commands ivy-mode
+  :custom
+  (ivy-count-format "%d/%d ")
+  (ivy-extra-directories nil)
+  (ivy-use-virtual-buffers t)
+  :init
+  (ivy-mode 1))
+#+end_src
+**** lsp
+#+begin_src emacs-lisp
+(use-package lsp-mode
+  :commands lsp
+  :custom
+  (lsp-rust-analyzer-cargo-watch-command "clippy")
+  (lsp-eldoc-render-all t)
+  (lsp-idle-delay 0.6)
+  (lsp-rust-analyzer-server-display-inlay-hints t))
+
+(use-package lsp-ui
+  :custom
+  (lsp-ui-peek-always-show t)
+  (lsp-ui-sideline-show-hover t)
+  (lsp-ui-doc-enable nil)
+  :hook (lsp-mode . lsp-ui-mode))
+#+end_src
+**** magit
+#+begin_src emacs-lisp
+(use-package forge)
+
+(use-package magit)
+#+end_src
+**** no-littering
+#+begin_src emacs-lisp
+(use-package no-littering)
+#+end_src
+**** org
+#+begin_src emacs-lisp
+(use-package org
+  :straight (:type built-in)
+  :bind (:map org-mode-map
+              ("M-j" . org-insert-heading-respect-content))
+  :custom
+  (org-hide-leading-stars t)
+  (org-special-ctrl-a/e t)
+  (org-special-ctrl-k t)
+  (org-special-ctrl-o t)
+  (org-src-fontify-natively t)
+  (org-src-preserve-indentation t)
+  (org-src-strip-leading-and-trailing-blank-lines t)
+  (org-src-tab-acts-natively t)
+  (org-src-window-setup 'current-window)
+  (org-startup-indented t)
+  (org-ellipsis "…"))
+
+
+(use-package org-bullets
+  :custom (org-bullets-bullet-list '("•"))
+  :hook (org-mode . org-bullets-mode))
+#+end_src
+**** swiper
+#+begin_src emacs-lisp
+(use-package swiper
+  :commands swiper
+  :bind ("C-s" . swiper))
+#+end_src
+**** rustic
+#+begin_src emacs-lisp
+(use-package rustic
+  :custom (rustic-format-on-save t))
+#+end_src
+**** yasnippet
+#+begin_src emacs-lisp
+(use-package yasnippet
+  :commands yas-reload-all
+  :config
+  (yas-reload-all)
+  :hook
+  (prog-mode . yas-minor-mode)
+  (text-mode . yas-minor-mode))
+
+(use-package yasnippet-snippets)
+#+end_src
+*** footer
+#+begin_src emacs-lisp
+(provide 'init-packages)
+;;; init-packages.el ends here
+#+end_src
+** Keybinds (init-keybinds.el)
+#+begin_src emacs-lisp :tangle lisp/init-keybinds.el
+;;; init-keybinds.el --- Enable my keybinds
+;;; Commentary:
+;;; Code:
+
+
+
+(provide 'init-keybinds)
+;;; init-keybinds.el
+#+end_src
+** Extra Customizations (init-custom.el)
+#+begin_src emacs-lisp :tangle lisp/init-custom.el
+;;; init-custom.el --- Activate extra customizations
+;;; Commentary:
+;;; Code:
+
+(defalias 'yes-or-no-p #'y-or-n-p)
+(customize-set-variable 'cursor-type 'bar)
+(customize-set-variable 'ring-bell-function #'ignore)
+(customize-set-variable 'truncate-lines t)
+(column-number-mode 1)
+(global-display-line-numbers-mode 1)
+(global-hl-line-mode 1)
+(global-prettify-symbols-mode 1)
+(show-paren-mode 1)
+
+(provide 'init-custom)
+;;; init-custom.el
+#+end_src

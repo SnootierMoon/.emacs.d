@@ -1,4 +1,7 @@
 /etc/
+/lisp/*
 /straight/
 /var/
-!/etc/config.org
+!/lisp/snoot.el
+/init.el
+/early-init.el
