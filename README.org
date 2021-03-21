@@ -14,7 +14,8 @@ to read my config.
 relies Emacs 27 features such as =early-init.el=.
 * Getting Started
 ** Prerequisites
-- Emacs version >27 :: If you have Emacs installed, verify that the version is >27 with =emacs --version=.
+- Emacs version >27 :: If you have Emacs installed, verify that the
+  version is >27 with =emacs --version=.
 
 - [[https://github.com/rust-analyzer/rust-analyzer][Rust-Analyzer]] :: I mainly use Emacs for Rust development.
   The rustic package uses requires rust-analyzer
@@ -77,8 +78,6 @@ startup.
 ;;; Commentary:
 ;;; Code:
 
-(require 'snoot)
-
 (require 'init-packages)
 (require 'init-keybinds)
 (require 'init-custom)
@@ -129,6 +128,8 @@ well."
 	(org-indent-region (point-min) (point-max))
       (indent-region (point-min) (point-max)))
     (delete-trailing-whitespace)))
+
+
 
 (provide 'snoot)
 ;;; snoot.el ends here
@@ -231,8 +232,8 @@ File header & bootstrap =straight.el=
 (use-package server
   :straight nil
   :defer 0.4
-  :hook (server-switch . raise-frame)
-  :config (or (server-running-p) (server-mode)))
+  :config (or (server-running-p) (server-mode))
+  :hook (server-switch . raise-frame))
 #+end_src
 **** light
 ***** avy
@@ -246,6 +247,20 @@ File header & bootstrap =straight.el=
   :custom
   (aw-dispatch-always t)
   (aw-keys snoot/easy-keys))
+#+end_src
+***** dashboard
+#+begin_src emacs-lisp
+(use-package dashboard
+  :config
+  (dashboard-setup-startup-hook)
+  :custom
+  (dashboard-set-heading-icons t)
+  (dashboard-set-file-icons t)
+  (dashboard-set-init-info t)
+  (dashboard-items '((recents  . 5)
+                     (projects . 5)
+                     (agenda . 5)))
+  (initial-buffer-choice #'dashboard-refresh-buffer))
 #+end_src
 ***** disable-mouse
 #+begin_src emacs-lisp
@@ -306,7 +321,6 @@ File header & bootstrap =straight.el=
 #+begin_src
 (use-package projectile
   :bind-keymap ("C-c p" . projectile-command-map)
-  :defer nil
   :init (projectile-mode t))
 #+end_src
 ***** company
@@ -338,18 +352,18 @@ File header & bootstrap =straight.el=
 #+begin_src emacs-lisp
 (use-package ivy
   :commands ivy-mode
+  :init (ivy-mode 1)
   :custom
   (ivy-count-format "%d/%d ")
   (ivy-extra-directories nil)
-  (ivy-use-virtual-buffers t)
-  :init (ivy-mode 1))
+  (ivy-use-virtual-buffers t))
 
 (use-package counsel
   :commands counsel-mode
+  :init (counsel-mode 1)
   :custom
   (counsel-find-file-ignore-regexp
-   "^\\(\\(.+\\/\\)*\\(\\.#.+\\|#.+#\\)\\|.+\\/build\\/.+\\)$")
-  :init (counsel-mode 1))
+   "^\\(\\(.+\\/\\)*\\(\\.#.+\\|#.+#\\)\\|.+\\/build\\/.+\\)$"))
 
 (use-package swiper
   :commands swiper
@@ -360,13 +374,12 @@ File header & bootstrap =straight.el=
 ;; apparently order matters:
 ;; https://github.com/seagle0128/all-the-icons-ivy-rich#use-package
 (use-package all-the-icons-ivy-rich
-  :ensure t
-  :custom (all-the-icons-ivy-rich-icon-size 0.8)
-  :init (all-the-icons-ivy-rich-mode 1))
+  :init (all-the-icons-ivy-rich-mode 1)
+  :custom (all-the-icons-ivy-rich-icon-size 0.8))
 
 (use-package ivy-rich
-  :config (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line)
-  :init (ivy-rich-mode 1))
+  :init (ivy-rich-mode 1)
+  :config (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line))
 #+end_src
 ***** rustic
 #+begin_src emacs-lisp
@@ -403,7 +416,7 @@ File header & bootstrap =straight.el=
 
 (hardcore-keys-mode 1)
 
-(global-set-key (kbd "C-c e i") #'snoot/indent-buffer)
+(global-set-key (kbd "C-c e i") #'snoot/reformat-buffer)
 (global-set-key (kbd "C-c e s") #'sort-lines)
 (global-set-key (kbd "C-c i f")
 		(lambda () (interactive) (find-file snoot/init-org-file)))

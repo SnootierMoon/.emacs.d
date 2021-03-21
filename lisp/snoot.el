@@ -38,5 +38,7 @@ well."
       (indent-region (point-min) (point-max)))
     (delete-trailing-whitespace)))
 
+
+
 (provide 'snoot)
 ;;; snoot.el ends here
