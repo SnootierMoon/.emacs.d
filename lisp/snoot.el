@@ -1,4 +1,6 @@
-;;; snoot.el --- Init code written by me Commentary: Code:
+;;; snoot.el --- Helpful elisp code
+;;; Commentary:
+;;; Code:
 
 (require 'org)
 
@@ -28,12 +30,13 @@
   "`indent-region' the current buffer and remove trailing whitespace.
 
 Additionally, if ARG is non-nil, `fill-column' the buffer as
-welly."
+well."
   (interactive "P")
-  (if (eq major-mode 'org-mode)
-      (org-indent-region (point-min) (point-max))
-    (indent-region (point-min) (point-max)))
-  (delete-trailing-whitespace))
+  (save-excursion
+    (if (eq major-mode 'org-mode)
+	(org-indent-region (point-min) (point-max))
+      (indent-region (point-min) (point-max)))
+    (delete-trailing-whitespace)))
 
 (provide 'snoot)
 ;;; snoot.el ends here

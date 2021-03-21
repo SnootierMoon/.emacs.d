@@ -3,10 +3,8 @@
 #+description: Pog
 
 * Project Summary
-This is my =.emacs.d= config file.  It's an =org-mode= file that has
-all of my configs in several =org-src= blocks along with some notes.
-I chose this design to have the benefits of organization while keeping
-all of the code in one file for ease of access.
+This is my =.emacs.d= config file.  It contains my preferences in
+several =org-src= blocks along with some notes.
 
 I wrote the notes so that I don't have to research everything every
 time I update this file.  However, I made them accessible for people
@@ -16,18 +14,15 @@ to read my config.
 relies Emacs 27 features such as =early-init.el=.
 * Getting Started
 ** Prerequisites
- - Emacs version >27 :: If you have Emacs installed, verify that the
-   version is >27 with =emacs --version=, because there's a chance
-   that it's not.
+- Emacs version >27 :: If you have Emacs installed, verify that the version is >27 with =emacs --version=.
 
- - [[https://github.com/rust-analyzer/rust-analyzer][Rust-Analyzer]] :: I mainly use Emacs for Rust development these
-   days.  The rust package that the config uses requires rust-analyzer
-   to work properly.  I *think* it works without rust-analyzer but
-   IIRC it has some annoying bugs for editing Rust files.
+- [[https://github.com/rust-analyzer/rust-analyzer][Rust-Analyzer]] :: I mainly use Emacs for Rust development.
+  The rustic package uses requires rust-analyzer
+  to work properly.  I *think* it works without rust-analyzer but
+  IIRC it has some annoying bugs for editing Rust files.
 ** Installation
 *** Cloning
-Since Emacs version 27 supports =~/config/emacs=, you can clone this
-repository into your =~/.config/emacs= directory:
+You can clone this repository into your =~/.config/emacs= directory:
 #+begin_src bash
 git clone https://github.com/SnootierMoon/.emacs.d ~/.config/emacs
 #+end_src
@@ -41,16 +36,16 @@ emacs --script ~/.config/emacs/lisp/snoot.el -f snoot/tangle-readme
 *** Systemd (optional)
 At this point, Emacs is ready.  However, you can also use =systemd= to
 have Emacs run constantly in the background ([[https://emacsredux.com/blog/2020/07/16/running-emacs-with-systemd/][instructions]]).
-* Features/Style Summary
-- I tried to make the elisp as compliant with =checkdock= as possible.
 * Code
 This section contains the fun stuff.
 ** early-init.el
-This runs before the GUI is initialized.  Since disable ugly GUI
-features here, they won't popup for a few seconds at startup and
-contaminate my eyes.
+This runs before the GUI is initialized.  I disable ugly GUI features
+(menu/tool/scroll bar) here so they don't popup for a few seconds at
+startup.
 #+begin_src emacs-lisp :tangle early-init.el
-;;; early-init.el --- My Early-Init File Commentary: Code:
+;;; early-init.el --- My Early-Init File
+;;; Commentary:
+;;; Code:
 
 (add-to-list 'load-path
 	     (expand-file-name "lisp" user-emacs-directory))
@@ -78,7 +73,9 @@ contaminate my eyes.
 #+end_src
 ** init.el
 #+begin_src emacs-lisp :tangle init.el
-;;; init.el --- My Emacs Startup File Commentary: Code:
+;;; init.el --- My Emacs Startup File
+;;; Commentary:
+;;; Code:
 
 (require 'snoot)
 
@@ -90,11 +87,12 @@ contaminate my eyes.
 ;;; init.el ends here
 #+end_src
 ** My Variables/Functions (snoot.el)
-This file contains variables and functions that I wrote myself.  It
-contains =snoot/tangle-readme=, which is used to generate the elisp
-files.
+This file contains variables and functions that I wrote.  It contains
+=snoot/tangle-readme=, which is used to generate the elisp files.
 #+begin_src emacs-lisp :tangle lisp/snoot.el
-;;; snoot.el --- Init code written by me Commentary: Code:
+;;; snoot.el --- Helpful elisp code
+;;; Commentary:
+;;; Code:
 
 (require 'org)
 
@@ -124,12 +122,13 @@ files.
   "`indent-region' the current buffer and remove trailing whitespace.
 
 Additionally, if ARG is non-nil, `fill-column' the buffer as
-welly."
+well."
   (interactive "P")
-  (if (eq major-mode 'org-mode)
-      (org-indent-region (point-min) (point-max))
-    (indent-region (point-min) (point-max)))
-  (delete-trailing-whitespace))
+  (save-excursion
+    (if (eq major-mode 'org-mode)
+	(org-indent-region (point-min) (point-max))
+      (indent-region (point-min) (point-max)))
+    (delete-trailing-whitespace)))
 
 (provide 'snoot)
 ;;; snoot.el ends here
@@ -141,7 +140,8 @@ welly."
 *** initialize
 File header & bootstrap =straight.el=
 #+begin_src emacs-lisp
-;;; init-packages.el --- Intialize packages with straight Commentary:
+;;; init-packages.el --- Intialize packages with straight
+;;; Commentary:
 ;;; Code:
 
 ;; https://github.com/raxod502/straight.el#bootstrapping-straightel
@@ -217,39 +217,36 @@ File header & bootstrap =straight.el=
 #+begin_src emacs-lisp
 (use-package files
   :straight (:type built-in)
-  :custom ((backup-by-copying t)
-           (delete-old-versions t)
-           (kept-new-versions 6)
-           (kept-old-versions 2)
-           (require-final-newline t)
-           (version-control t)
-           (view-read-only t)))
+  :custom
+  (backup-by-copying t)
+  (delete-old-versions t)
+  (kept-new-versions 6)
+  (kept-old-versions 2)
+  (require-final-newline t)
+  (version-control t)
+  (view-read-only t))
 #+end_src
 ***** server
-#+begin_src server
+#+begin_src emacs-lisp
 (use-package server
-  :straight (:type built-in)
+  :straight nil
   :defer 0.4
   :hook (server-switch . raise-frame)
-  :init (or (server-running-p) (server-mode)))
+  :config (or (server-running-p) (server-mode)))
 #+end_src
 **** light
-***** async
-#+begin_src emacs-lisp
-(use-package async)
-#+end_src
 ***** avy
 #+begin_src emacs-lisp
 (use-package avy
   :bind ("C-;" . avy-goto-char)
-  :custom (avy-keys my/easy-keys))
+  :custom (avy-keys snoot/easy-keys))
 
 (use-package ace-window
   :bind ("M-o" . ace-window)
-  :custom ((aw-dispatch-always t)
-           (aw-keys my/easy-keys)))
+  :custom
+  (aw-dispatch-always t)
+  (aw-keys snoot/easy-keys))
 #+end_src
-
 ***** disable-mouse
 #+begin_src emacs-lisp
 (use-package disable-mouse
@@ -268,7 +265,6 @@ File header & bootstrap =straight.el=
 (use-package ibuffer
   :bind ("C-x C-b" . ibuffer-other-window))
 #+end_src
-***** mixed-pitch
 ***** powerline
 #+begin_src emacs-lisp
 (use-package powerline
@@ -292,7 +288,7 @@ File header & bootstrap =straight.el=
   (text-mode . yas-minor-mode))
 
 (use-package yasnippet-snippets)
-#+end_src 
+#+end_src
 **** heavy
 ***** magit
 #+begin_src emacs-lisp
@@ -307,10 +303,10 @@ File header & bootstrap =straight.el=
   :hook (prog-mode . flycheck-mode))
 #+end_src
 ***** projectile
-#+begin_src 
-(use-package projectile                             
+#+begin_src
+(use-package projectile
   :bind-keymap ("C-c p" . projectile-command-map)
-  :defer nil                                       
+  :defer nil
   :init (projectile-mode t))
 #+end_src
 ***** company
@@ -361,7 +357,7 @@ File header & bootstrap =straight.el=
 
 (use-package counsel-projectile)
 
-;; apparently order matters: 
+;; apparently order matters:
 ;; https://github.com/seagle0128/all-the-icons-ivy-rich#use-package
 (use-package all-the-icons-ivy-rich
   :ensure t
@@ -384,14 +380,50 @@ File header & bootstrap =straight.el=
 #+end_src
 ** Keybinds (init-keybinds.el)
 #+begin_src emacs-lisp :tangle lisp/init-keybinds.el
-;;; init-keybinds.el --- Enable my keybinds Commentary: Code:
+;;; init-keybinds.el --- Enable my keybinds
+;;; Commentary:
+;;; Code:
+
+(define-minor-mode hardcore-keys-mode
+  "Hardcore mode"
+  :global t
+  :lighter " hc"
+  :keymap '(([backspace] . ignore)
+            ([down] . ignore)
+            ([left] . ignore)
+            ([return] . god-mode)
+            ([right] . ignore)
+            ([tab] . ignore)
+            ([up] . ignore)
+            ([?\C-c ?\h] . help-command))
+  :after-hook
+  (define-key key-translation-map [?\C-h]
+    (when hardcore-keys-mode
+      [?\C-?])))
+
+(hardcore-keys-mode 1)
+
+(global-set-key (kbd "C-c e i") #'snoot/indent-buffer)
+(global-set-key (kbd "C-c e s") #'sort-lines)
+(global-set-key (kbd "C-c i f")
+		(lambda () (interactive) (find-file snoot/init-org-file)))
+(global-set-key (kbd "C-c i l") #'use-package-report)
+(global-set-key (kbd "C-c r d") #'diff-buffer-with-file)
+(global-set-key (kbd "C-c r r") #'recover-this-file)
+(global-set-key (kbd "C-x C-z") #'ignore)
+(global-set-key (kbd "C-x K") #'kill-buffer)
+(global-set-key (kbd "C-x M-k") #'kill-buffer-and-window)
+(global-set-key (kbd "C-x k") #'snoot/kill-current-buffer)
+(global-set-key (kbd "C-z") #'ignore)
 
 (provide 'init-keybinds)
 ;;; init-keybinds.el ends here
 #+end_src
 ** Extra Customizations (init-custom.el)
 #+begin_src emacs-lisp :tangle lisp/init-custom.el
-;;; init-custom.el --- Activate extra customizations Commentary: Code:
+;;; init-custom.el --- Activate extra customizations
+;;; Commentary:
+;;; Code:
 
 (defalias 'yes-or-no-p #'y-or-n-p)
 (customize-set-variable 'cursor-type 'bar)
@@ -419,4 +451,3 @@ File header & bootstrap =straight.el=
 (provide 'init-custom)
 ;;; init-custom.el ends here
 #+end_src
-
