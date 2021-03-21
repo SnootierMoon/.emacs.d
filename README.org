@@ -3,56 +3,54 @@
 #+description: Pog
 
 * Project Summary
-This is my =.emacs.d= config file. It's an =org-mode= file that has
-all of my configs in several =org-src= blocks along with some notes. I
-chose this design to have the benefits of organization while keeping
+This is my =.emacs.d= config file.  It's an =org-mode= file that has
+all of my configs in several =org-src= blocks along with some notes.
+I chose this design to have the benefits of organization while keeping
 all of the code in one file for ease of access.
 
 I wrote the notes so that I don't have to research everything every
-time I update this file. However, I made them accessible for people to
-read my config.
+time I update this file.  However, I made them accessible for people
+to read my config.
 
 *NOTE: This config only works with Emacs version >27* because it
 relies Emacs 27 features such as =early-init.el=.
 * Getting Started
 ** Prerequisites
  - Emacs version >27 :: If you have Emacs installed, verify that the
-version is >27 with =emacs --version=, because there's a chance that
-it's not.
+   version is >27 with =emacs --version=, because there's a chance
+   that it's not.
 
- - [[https://github.com/rust-analyzer/rust-analyzer][Rust-Analyzer]] :: I mainly use Emacs for Rust development thesexo
-days. The rust package that the config uses requires rust-analyzer to
-work properly. I *think* it works without rust-analyzer but IIRC it
-has some annoying bugs for editing Rust files.
+ - [[https://github.com/rust-analyzer/rust-analyzer][Rust-Analyzer]] :: I mainly use Emacs for Rust development these
+   days.  The rust package that the config uses requires rust-analyzer
+   to work properly.  I *think* it works without rust-analyzer but
+   IIRC it has some annoying bugs for editing Rust files.
 ** Installation
 *** Cloning
-Since you should be using Emacs version >27, you can clone this
+Since Emacs version 27 supports =~/config/emacs=, you can clone this
 repository into your =~/.config/emacs= directory:
 #+begin_src bash
 git clone https://github.com/SnootierMoon/.emacs.d ~/.config/emacs
 #+end_src
 *** Building elisp files
-This config doesn't come with =init.el= or =early-init.el=. Instead,
-they are generated from =README.org= using the =lisp/snoot.el= file.
-In order to generate them, do:
+This config doesn't come with =init.el= or =early-init.el=.  Instead,
+they are generated from =README.org= using =lisp/snoot.el=.  In order
+to generate them, do:
 #+begin_src bash
 emacs --script ~/.config/emacs/lisp/snoot.el -f snoot/tangle-readme
 #+end_src
 *** Systemd (optional)
-At this point, Emacs is ready. However, ou can also use =systemd= to
+At this point, Emacs is ready.  However, you can also use =systemd= to
 have Emacs run constantly in the background ([[https://emacsredux.com/blog/2020/07/16/running-emacs-with-systemd/][instructions]]).
 * Features/Style Summary
 - I tried to make the elisp as compliant with =checkdock= as possible.
 * Code
 This section contains the fun stuff.
 ** early-init.el
-This runs before the GUI is initialized. Since disable ugly GUI
+This runs before the GUI is initialized.  Since disable ugly GUI
 features here, they won't popup for a few seconds at startup and
 contaminate my eyes.
 #+begin_src emacs-lisp :tangle early-init.el
-;;; early-init.el --- My Early-Init File
-;;; Commentary:
-;;; Code:
+;;; early-init.el --- My Early-Init File Commentary: Code:
 
 (add-to-list 'load-path
 	     (expand-file-name "lisp" user-emacs-directory))
@@ -68,9 +66,7 @@ contaminate my eyes.
 #+end_src
 ** init.el
 #+begin_src emacs-lisp :tangle init.el
-;;; init.el --- My Emacs Startup File
-;;; Commentary:
-;;; Code:
+;;; init.el --- My Emacs Startup File Commentary: Code:
 
 (require 'snoot)
 
@@ -82,13 +78,11 @@ contaminate my eyes.
 ;;; init.el ends here
 #+end_src
 ** My Variables/Functions (snoot.el)
-This file contains variables and functions that I wrote myself. It
+This file contains variables and functions that I wrote myself.  It
 contains =snoot/tangle-readme=, which is used to generate the elisp
 files.
 #+begin_src emacs-lisp :tangle lisp/snoot.el
-;;; snoot.el --- Init code written by me
-;;; Commentary:
-;;; Code:
+;;; snoot.el --- Init code written by me Commentary: Code:
 
 (require 'org)
 
@@ -108,7 +102,8 @@ files.
 (defun snoot/reformat-buffer (arg)
   "`indent-region' the current buffer and remove trailing whitespace.
 
-Additionally, if ARG is non-nil, `fill-column' the buffer as welly."
+Additionally, if ARG is non-nil, `fill-column' the buffer as
+welly."
   (interactive "P")
   (if (eq major-mode 'org-mode)
       (org-indent-region (point-min) (point-max))
@@ -125,8 +120,7 @@ Additionally, if ARG is non-nil, `fill-column' the buffer as welly."
 *** initialize
 File header & bootstrap =straight.el=
 #+begin_src emacs-lisp
-;;; init-packages.el --- Intialize packages with straight
-;;; Commentary:
+;;; init-packages.el --- Intialize packages with straight Commentary:
 ;;; Code:
 
 ;; https://github.com/raxod502/straight.el#bootstrapping-straightel
@@ -274,18 +268,14 @@ File header & bootstrap =straight.el=
 #+end_src
 ** Keybinds (init-keybinds.el)
 #+begin_src emacs-lisp :tangle lisp/init-keybinds.el
-;;; init-keybinds.el --- Enable my keybinds
-;;; Commentary:
-;;; Code:
+;;; init-keybinds.el --- Enable my keybinds Commentary: Code:
 
 (provide 'init-keybinds)
 ;;; init-keybinds.el ends here
 #+end_src
 ** Extra Customizations (init-custom.el)
 #+begin_src emacs-lisp :tangle lisp/init-custom.el
-;;; init-custom.el --- Activate extra customizations
-;;; Commentary:
-;;; Code:
+;;; init-custom.el --- Activate extra customizations Commentary: Code:
 
 (defalias 'yes-or-no-p #'y-or-n-p)
 (customize-set-variable 'cursor-type 'bar)
