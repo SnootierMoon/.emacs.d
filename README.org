@@ -78,9 +78,11 @@ startup.
 ;;; Commentary:
 ;;; Code:
 
-(require 'init-packages)
-(require 'init-keybinds)
-(require 'init-custom)
+(let ((gc-cons-threshold 100000000)
+      (file-name-handler-alist nil))
+  (require 'init-packages)
+  (require 'init-keybinds)
+  (require 'init-custom))
 
 (provide 'init)
 ;;; init.el ends here
@@ -135,9 +137,9 @@ well."
 ;;; snoot.el ends here
 #+end_src
 ** Packages (init-packages.el)
-:PROPERTIES:
+:properties:
 :header-args: :tangle lisp/init-packages.el
-:END:
+:end:
 *** initialize
 File header & bootstrap =straight.el=
 #+begin_src emacs-lisp
@@ -183,7 +185,6 @@ File header & bootstrap =straight.el=
 ***** dired
 #+begin_src emacs-lisp
 (use-package dired-collapse
-  :straight (:type built-in)
   :hook (dired-mode . dired-collapse-mode))
 (use-package dired-x
   :straight (:type built-in)
@@ -318,7 +319,7 @@ File header & bootstrap =straight.el=
   :hook (prog-mode . flycheck-mode))
 #+end_src
 ***** projectile
-#+begin_src
+#+begin_src emacs-lisp
 (use-package projectile
   :bind-keymap ("C-c p" . projectile-command-map)
   :init (projectile-mode t))
