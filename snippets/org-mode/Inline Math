@@ -1,0 +1,5 @@
+# key: mk
+# name: Inline Math
+# condition: (and (not (texmathp)) 'auto)
+# --
+\\( $0 \\)
