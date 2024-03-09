@@ -1,5 +1,5 @@
 # key: mk
 # name: Inline Math
-# condition: (and (not (texmathp)) 'auto)
+# condition: (and (not (texmathp)) (quote auto))
 # --
 \\( $0 \\)

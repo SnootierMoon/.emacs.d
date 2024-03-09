@@ -1,5 +1,10 @@
-/auto-save-list/
+/.org-id-locations
+/auto-save-list/*
+/backups/*
+/bookmarks
 /custom.el
 /eln-cache/*
 /elpa/*
+/org-roam.db
 /projects
+/recentf

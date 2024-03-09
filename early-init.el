@@ -4,7 +4,7 @@
 (tool-bar-mode -1)
 (tooltip-mode -1)
 
-(set-face-attribute 'default nil :font "Liberation Mono" :height 120)
+(add-to-list 'default-frame-alist '(font . "Liberation Mono"))
 
 (load-theme 'modus-vivendi)
 
